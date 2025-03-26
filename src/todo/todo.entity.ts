@@ -1,19 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column } from 'typeorm';
 
-@Entity()
-export class Todo {
-  @PrimaryGeneratedColumn()
-  id: number;
+import { BaseEntity } from 'src/database/entities/base.entity';
 
+@Entity('todo')
+export class TodoEntity extends BaseEntity {
   @Column()
   title: string;
 
-  @Column({ default: false })
+  @Column({ default: false, name: 'is_completed' })
   isCompleted: boolean;
-
-  @Column({ default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
-
-  @Column({ default: () => 'CURRENT_TIMESTAMP' })
-  updatedAt: Date;
 }
