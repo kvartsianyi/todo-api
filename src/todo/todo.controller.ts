@@ -12,27 +12,20 @@ import {
 import { TodoService } from './todo.service';
 import { DeleteResult } from 'typeorm';
 
-interface Todo {
-  id?: number;
-  title: string;
-  isCompleted?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+import { TodoEntity } from './todo.entity';
+import { CreateTodoDto, UpdateTodoDto } from './dtos';
 
 @Controller('todos')
 export class TodoController {
-  todos: Todo[] = [];
-
   constructor(private readonly todoService: TodoService) {}
 
   @Get()
-  getAllTodos(): Promise<Todo[]> {
+  getAllTodos(): Promise<TodoEntity[]> {
     return this.todoService.findAllTodos();
   }
 
   @Get(':id')
-  async getTodo(@Param('id', ParseIntPipe) id: number): Promise<Todo> {
+  async getTodo(@Param('id', ParseIntPipe) id: number): Promise<TodoEntity> {
     const todo = await this.todoService.findOneById(id);
 
     if (!todo) {
@@ -43,19 +36,18 @@ export class TodoController {
   }
 
   @Post()
-  addTodo(@Body() body: Todo): Promise<Todo> {
+  createTodo(@Body() createTodoDto: CreateTodoDto): Promise<TodoEntity> {
     return this.todoService.addTodo({
-      title: body.title,
-      isCompleted: false,
+      title: createTodoDto.title,
     });
   }
 
   @Put(':id')
   async updateTodo(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: Todo,
-  ): Promise<Todo | null> {
-    const updateResult = await this.todoService.updateTodo(id, body);
+    @Body() updateTodoDto: UpdateTodoDto,
+  ): Promise<TodoEntity | null> {
+    const updateResult = await this.todoService.updateTodo(id, updateTodoDto);
 
     if (!updateResult.affected) {
       throw new NotFoundException();
