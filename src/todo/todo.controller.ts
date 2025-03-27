@@ -37,7 +37,7 @@ export class TodoController {
 
   @Post()
   createTodo(@Body() createTodoDto: CreateTodoDto): Promise<TodoEntity> {
-    return this.todoService.addTodo({
+    return this.todoService.createTodo({
       title: createTodoDto.title,
     });
   }
