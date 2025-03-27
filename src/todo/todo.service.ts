@@ -19,7 +19,7 @@ export class TodoService {
     return this.todoRepository.findOneBy({ id });
   }
 
-  addTodo(todoDto: Partial<TodoEntity>): Promise<TodoEntity> {
+  createTodo(todoDto: Partial<TodoEntity>): Promise<TodoEntity> {
     return this.todoRepository.save(todoDto);
   }
 
