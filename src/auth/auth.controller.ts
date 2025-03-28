@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Post,
-  UseGuards,
-  Body,
-  ClassSerializerInterceptor,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Post, UseGuards, Body } from '@nestjs/common';
 
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
@@ -16,7 +9,6 @@ import { UserEntity } from '@/user/user.entity';
 import { RefreshJwtAuthGuard } from './guards/refresh-jwt-auth.guard';
 
 @Controller('auth')
-@UseInterceptors(ClassSerializerInterceptor)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
