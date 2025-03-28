@@ -4,6 +4,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { TodoModule } from './todo/todo.module';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
+import { BcryptModule } from '@common/bcrypt/bcrypt.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { UserModule } from './user/user.module';
     }),
     TodoModule,
     UserModule,
+    AuthModule,
+    BcryptModule,
   ],
 })
 export class AppModule {}
