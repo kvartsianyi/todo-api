@@ -19,6 +19,7 @@ export class Migration1743076045050 implements MigrationInterface {
             name: 'username',
             type: 'varchar',
             length: '255',
+            isUnique: true,
             isNullable: false,
           },
           {
