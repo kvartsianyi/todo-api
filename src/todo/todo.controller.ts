@@ -3,30 +3,44 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
   ParseIntPipe,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
-import { TodoService } from './todo.service';
-import { DeleteResult } from 'typeorm';
 
+import { TodoService } from './todo.service';
 import { TodoEntity } from './todo.entity';
 import { CreateTodoDto, UpdateTodoDto } from './dtos';
+import { JwtAuthGuard } from '@/auth/guards';
+import { User } from '@/common/decorators/user.decorator';
+import { UserEntity } from '@/user/user.entity';
 
 @Controller('todos')
+@UseGuards(JwtAuthGuard)
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
   @Get()
-  getAllTodos(): Promise<TodoEntity[]> {
-    return this.todoService.findAllTodos();
+  getAllTodos(@User() user: UserEntity): Promise<TodoEntity[]> {
+    return this.todoService.findAllTodos({
+      userId: user.id,
+    });
   }
 
   @Get(':id')
-  async getTodo(@Param('id', ParseIntPipe) id: number): Promise<TodoEntity> {
-    const todo = await this.todoService.findOneById(id);
+  async getTodo(
+    @User() user: UserEntity,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<TodoEntity> {
+    const todo = await this.todoService.findOneByParams({
+      id,
+      userId: user.id,
+    });
 
     if (!todo) {
       throw new NotFoundException();
@@ -36,28 +50,51 @@ export class TodoController {
   }
 
   @Post()
-  createTodo(@Body() createTodoDto: CreateTodoDto): Promise<TodoEntity> {
+  createTodo(
+    @User() user: UserEntity,
+    @Body() createTodoDto: CreateTodoDto,
+  ): Promise<TodoEntity> {
     return this.todoService.createTodo({
       title: createTodoDto.title,
+      userId: user.id,
     });
   }
 
   @Put(':id')
   async updateTodo(
     @Param('id', ParseIntPipe) id: number,
+    @User() user: UserEntity,
     @Body() updateTodoDto: UpdateTodoDto,
   ): Promise<TodoEntity | null> {
-    const updateResult = await this.todoService.updateTodo(id, updateTodoDto);
+    const todo = await this.todoService.findOneByParams({
+      id,
+      userId: user.id,
+    });
 
-    if (!updateResult.affected) {
+    if (!todo) {
       throw new NotFoundException();
     }
+
+    await this.todoService.updateTodo(todo.id, updateTodoDto);
 
     return this.todoService.findOneById(id);
   }
 
   @Delete(':id')
-  removeTodo(@Param('id', ParseIntPipe) id: number): Promise<DeleteResult> {
-    return this.todoService.deleteTodo(id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeTodo(
+    @Param('id', ParseIntPipe) id: number,
+    @User() user: UserEntity,
+  ): Promise<void> {
+    const todo = await this.todoService.findOneByParams({
+      id,
+      userId: user.id,
+    });
+
+    if (!todo) {
+      throw new NotFoundException();
+    }
+
+    await this.todoService.deleteTodo(id);
   }
 }

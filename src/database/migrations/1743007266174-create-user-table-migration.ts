@@ -6,7 +6,7 @@ export class Migration1743007266174 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'todo',
+        name: 'user',
         columns: [
           {
             name: 'id',
@@ -16,16 +16,17 @@ export class Migration1743007266174 implements MigrationInterface {
             generationStrategy: 'increment',
           },
           {
-            name: 'title',
+            name: 'username',
             type: 'varchar',
             length: '255',
+            isUnique: true,
             isNullable: false,
           },
           {
-            name: 'is_completed',
-            type: 'boolean',
+            name: 'password',
+            type: 'varchar',
+            length: '255',
             isNullable: false,
-            default: false,
           },
           {
             name: 'created_at',
@@ -45,6 +46,6 @@ export class Migration1743007266174 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('todo');
+    await queryRunner.dropTable('user');
   }
 }
