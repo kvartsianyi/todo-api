@@ -8,14 +8,17 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { TodoService } from './todo.service';
 import { DeleteResult } from 'typeorm';
 
 import { TodoEntity } from './todo.entity';
 import { CreateTodoDto, UpdateTodoDto } from './dtos';
+import { JwtAuthGuard } from '@/auth/guards';
 
 @Controller('todos')
+@UseGuards(JwtAuthGuard)
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
