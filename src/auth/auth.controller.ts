@@ -4,9 +4,9 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dtos';
 import { IJwtTokenPair } from './interfaces';
-import { User } from '@/common/decorators/user.decorator';
 import { UserEntity } from '@/user/user.entity';
 import { RefreshJwtAuthGuard } from './guards/refresh-jwt-auth.guard';
+import { User } from '@/common/decorators';
 
 @Controller('auth')
 export class AuthController {

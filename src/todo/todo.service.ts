@@ -8,6 +8,7 @@ import {
   Repository,
   UpdateResult,
 } from 'typeorm';
+import { PaginationDto } from '@/common/dtos';
 
 @Injectable()
 export class TodoService {
@@ -16,10 +17,20 @@ export class TodoService {
     private todoRepository: Repository<TodoEntity>,
   ) {}
 
-  findAllTodos(params?: FindOptionsWhere<TodoEntity>): Promise<TodoEntity[]> {
-    return this.todoRepository.find({
-      where: params,
-    });
+  async findAllTodos({
+    params = {},
+    pagination = {},
+  }: {
+    params?: FindOptionsWhere<TodoEntity>;
+    pagination?: PaginationDto;
+  }): Promise<[TodoEntity[], number]> {
+    const queryBuilder = this.todoRepository.createQueryBuilder('todo');
+
+    return queryBuilder
+      .where(params)
+      .skip(pagination.skip)
+      .take(pagination.limit)
+      .getManyAndCount();
   }
 
   findOneById(id: number): Promise<TodoEntity | null> {
