@@ -5,12 +5,20 @@ import {
   TableForeignKey,
 } from 'typeorm';
 
+import { TodoStatusEnum } from '@/todo/constants';
+import { createEnumTypeQuery, dropEnumTypeQuery } from '@/common/utils';
+
 const TABLE_NAME = 'todo';
+const STATUS_TYPE_NAME = 'todo_status_enum';
+const STATUS_TYPE_VALUES = Object.values(TodoStatusEnum);
 
 export class Migration1743076045050 implements MigrationInterface {
   name = 'Migration1743076045050';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      createEnumTypeQuery(STATUS_TYPE_NAME, STATUS_TYPE_VALUES),
+    );
     await queryRunner.createTable(
       new Table({
         name: TABLE_NAME,
@@ -29,10 +37,12 @@ export class Migration1743076045050 implements MigrationInterface {
             isNullable: false,
           },
           {
-            name: 'is_completed',
-            type: 'boolean',
+            name: 'status',
+            type: 'enum',
+            enumName: STATUS_TYPE_NAME,
+            enum: STATUS_TYPE_VALUES,
             isNullable: false,
-            default: false,
+            default: `'${TodoStatusEnum.TODO}'`,
           },
           {
             name: 'user_id',
@@ -77,5 +87,6 @@ export class Migration1743076045050 implements MigrationInterface {
     }
 
     await queryRunner.dropTable(TABLE_NAME);
+    await queryRunner.query(dropEnumTypeQuery(STATUS_TYPE_NAME));
   }
 }
