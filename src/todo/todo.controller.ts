@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -17,8 +18,9 @@ import { TodoService } from './todo.service';
 import { TodoEntity } from './todo.entity';
 import { CreateTodoDto, UpdateTodoDto } from './dtos';
 import { JwtAuthGuard } from '@/auth/guards';
-import { User } from '@/common/decorators/user.decorator';
 import { UserEntity } from '@/user/user.entity';
+import { User } from '@/common/decorators';
+import { PaginationDto } from '@/common/dtos';
 
 @Controller('todos')
 @UseGuards(JwtAuthGuard)
@@ -26,10 +28,16 @@ export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
   @Get()
-  getAllTodos(@User() user: UserEntity): Promise<TodoEntity[]> {
-    return this.todoService.findAllTodos({
-      userId: user.id,
+  async getAllTodos(
+    @User() user: UserEntity,
+    @Query() pagination: PaginationDto,
+  ): Promise<{ data: TodoEntity[]; total: number }> {
+    const [todos, total] = await this.todoService.findAllTodos({
+      params: { userId: user.id },
+      pagination,
     });
+
+    return { data: todos, total };
   }
 
   @Get(':id')
