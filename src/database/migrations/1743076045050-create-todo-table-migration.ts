@@ -37,6 +37,12 @@ export class Migration1743076045050 implements MigrationInterface {
             isNullable: false,
           },
           {
+            name: 'description',
+            type: 'varchar',
+            length: '255',
+            isNullable: true,
+          },
+          {
             name: 'status',
             type: 'enum',
             enumName: STATUS_TYPE_NAME,
@@ -48,6 +54,11 @@ export class Migration1743076045050 implements MigrationInterface {
             name: 'user_id',
             type: 'int',
             isNullable: false,
+          },
+          {
+            name: 'due_at',
+            type: 'timestamp',
+            isNullable: true,
           },
           {
             name: 'created_at',

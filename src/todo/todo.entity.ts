@@ -9,6 +9,9 @@ export class TodoEntity extends BaseEntity {
   @Column()
   title: string;
 
+  @Column()
+  description: string;
+
   @Column({
     type: 'enum',
     enum: TodoStatusEnum,
@@ -18,6 +21,9 @@ export class TodoEntity extends BaseEntity {
 
   @Column({ name: 'user_id' })
   userId: number;
+
+  @Column({ type: 'timestamptz', name: 'due_at' })
+  readonly dueAt: Date;
 
   @ManyToOne(() => UserEntity, (user) => user.todos, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
