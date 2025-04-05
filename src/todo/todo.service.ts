@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-
-import { TodoEntity } from './todo.entity';
 import {
   DeleteResult,
   FindOptionsWhere,
   Repository,
   UpdateResult,
 } from 'typeorm';
-import { PaginationDto } from '@/common/dtos';
+
+import { TodoEntity } from './todo.entity';
+import { PaginationDto, SortingDto } from '@/common/dtos';
+import { applyFilters, paginateQuery, applySorting } from '@/common/utils';
+import { IPaginatedResource, IQueryFilter } from '@/common/interfaces';
+import { PAGINATION_DEFAULT_PARAMS } from '@/common/constants';
 
 @Injectable()
 export class TodoService {
@@ -18,19 +21,24 @@ export class TodoService {
   ) {}
 
   async findAllTodos({
-    params = {},
-    pagination = {},
+    whereParams = {},
+    pagination = PAGINATION_DEFAULT_PARAMS,
+    sorting = {},
+    filters = [],
   }: {
-    params?: FindOptionsWhere<TodoEntity>;
+    whereParams?: FindOptionsWhere<TodoEntity>;
     pagination?: PaginationDto;
-  }): Promise<[TodoEntity[], number]> {
-    const queryBuilder = this.todoRepository.createQueryBuilder('todo');
+    sorting?: SortingDto;
+    filters?: IQueryFilter[];
+  }): Promise<IPaginatedResource<TodoEntity>> {
+    const qb = this.todoRepository
+      .createQueryBuilder(TodoEntity.name)
+      .where(whereParams);
 
-    return queryBuilder
-      .where(params)
-      .skip(pagination.skip)
-      .take(pagination.limit)
-      .getManyAndCount();
+    applySorting(qb, sorting);
+    applyFilters(qb, filters);
+
+    return paginateQuery(qb, pagination);
   }
 
   findOneById(id: number): Promise<TodoEntity | null> {
