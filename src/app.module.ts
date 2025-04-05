@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
@@ -6,6 +6,7 @@ import { TodoModule } from './todo/todo.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { BcryptModule } from '@common/bcrypt/bcrypt.module';
+import { MorganMiddleware } from './common/middlewares';
 
 @Module({
   imports: [
@@ -30,4 +31,8 @@ import { BcryptModule } from '@common/bcrypt/bcrypt.module';
     BcryptModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(MorganMiddleware).forRoutes('*');
+  }
+}
