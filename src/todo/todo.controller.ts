@@ -8,9 +8,8 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
-  Put,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 
@@ -19,8 +18,15 @@ import { TodoEntity } from './todo.entity';
 import { CreateTodoDto, UpdateTodoDto } from './dtos';
 import { JwtAuthGuard } from '@/auth/guards';
 import { UserEntity } from '@/user/user.entity';
-import { User } from '@/common/decorators';
-import { PaginationDto } from '@/common/dtos';
+import {
+  FilteringQuery,
+  PaginationQuery,
+  SortingQuery,
+  User,
+} from '@/common/decorators';
+import { PaginationDto, SortingDto } from '@/common/dtos';
+import { IPaginatedResource, IQueryFilter } from '@/common/interfaces';
+import { TODO_FILTERABLE_FIELDS, TODO_SORTABLE_FIELDS } from './constants';
 
 @Controller('todos')
 @UseGuards(JwtAuthGuard)
@@ -28,16 +34,19 @@ export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   async getAllTodos(
     @User() user: UserEntity,
-    @Query() pagination: PaginationDto,
-  ): Promise<{ data: TodoEntity[]; total: number }> {
-    const [todos, total] = await this.todoService.findAllTodos({
-      params: { userId: user.id },
+    @PaginationQuery() pagination: PaginationDto,
+    @SortingQuery(TODO_SORTABLE_FIELDS) sorting: SortingDto,
+    @FilteringQuery(TODO_FILTERABLE_FIELDS) filters: IQueryFilter[],
+  ): Promise<IPaginatedResource<TodoEntity>> {
+    return this.todoService.findAllTodos({
+      whereParams: { userId: user.id },
       pagination,
+      sorting,
+      filters,
     });
-
-    return { data: todos, total };
   }
 
   @Get(':id')
@@ -68,7 +77,7 @@ export class TodoController {
     });
   }
 
-  @Put(':id')
+  @Patch(':id')
   async updateTodo(
     @Param('id', ParseIntPipe) id: number,
     @User() user: UserEntity,
