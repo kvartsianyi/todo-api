@@ -1,13 +1,13 @@
-import {
-  BadRequestException,
-  createParamDecorator,
-  ExecutionContext,
-} from '@nestjs/common';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 
 import { parseFilterParams, pickFilterParams, validateFilters } from '../utils';
 import { IQueryFilter } from '../interfaces';
-import { FilterRuleEnum } from '../constants';
+import {
+  FILTER_VALIDATION_EXCEPTION_MESSAGE,
+  FilterRuleEnum,
+} from '../constants';
+import { ValidationException } from '../exceptions';
 
 export const FilteringQuery = createParamDecorator(
   (
@@ -24,7 +24,10 @@ export const FilteringQuery = createParamDecorator(
     const errors = validateFilters(filters, filterableFieldsMap);
 
     if (errors.length) {
-      throw new BadRequestException(errors);
+      throw new ValidationException(
+        FILTER_VALIDATION_EXCEPTION_MESSAGE,
+        errors,
+      );
     }
 
     return filters;

@@ -1,14 +1,11 @@
-import {
-  BadRequestException,
-  createParamDecorator,
-  ExecutionContext,
-} from '@nestjs/common';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
+import { validate, ValidationError } from 'class-validator';
 
 import { SortingDto } from '../dtos';
-import { SORT_ERRORS } from '../constants';
+import { SORT_ERRORS, SORT_VALIDATION_EXCEPTION_MESSAGE } from '../constants';
+import { ValidationException } from '../exceptions';
 
 export const SortingQuery = createParamDecorator(
   async (
@@ -23,18 +20,24 @@ export const SortingQuery = createParamDecorator(
     const errors = await validate(sortingDto);
 
     if (sortBy && !sortableFields?.includes(sortBy as string)) {
-      throw new BadRequestException(
-        SORT_ERRORS.FIELD_IS_NOT_SORTABLE(sortableFields),
+      const validationErrors: ValidationError[] = [
+        {
+          target: sortingDto,
+          property: 'sortBy',
+          constraints: {
+            in: SORT_ERRORS.FIELD_IS_NOT_SORTABLE(sortableFields),
+          },
+        },
+      ];
+
+      throw new ValidationException(
+        SORT_VALIDATION_EXCEPTION_MESSAGE,
+        validationErrors,
       );
     }
 
     if (errors.length) {
-      const errorMessages = errors.reduce(
-        (acc, { constraints }) =>
-          constraints ? [...acc, ...Object.values(constraints)] : acc,
-        [],
-      );
-      throw new BadRequestException(errorMessages);
+      throw new ValidationException(SORT_VALIDATION_EXCEPTION_MESSAGE, errors);
     }
 
     return sortingDto;

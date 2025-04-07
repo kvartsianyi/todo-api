@@ -8,6 +8,7 @@ import {
 } from '../constants';
 import { IQueryFilter, QueryFilterValueType } from '../interfaces';
 import { getFilterPropertyType, parseObject } from './type.util';
+import { ValidationError } from 'class-validator';
 
 const { PROPERTY_RULE_NOT_SUPPORTED, INVALID_RULE_VALUE } = FILTER_ERRORS;
 
@@ -50,27 +51,33 @@ export const parseFilterParams = (
 export const validateFilters = (
   filters: IQueryFilter[],
   filterableFieldsMap: Record<string, FilterRuleEnum[]>,
-): Record<string, unknown>[] => {
-  const errors: Record<string, unknown>[] = [];
+): ValidationError[] => {
+  const errors: ValidationError[] = [];
 
-  for (const { property, rule, value } of filters) {
+  for (const filter of filters) {
+    const { property, rule, value } = filter;
+    const allowedRules = filterableFieldsMap[property];
     const type = getFilterPropertyType(value);
 
-    if (!filterableFieldsMap[property].includes(rule)) {
+    if (!allowedRules.includes(rule)) {
       errors.push({
-        message: PROPERTY_RULE_NOT_SUPPORTED(filterableFieldsMap[property]),
+        target: filter,
         property,
-        rule,
         value,
+        constraints: {
+          [rule]: PROPERTY_RULE_NOT_SUPPORTED(rule, property, allowedRules),
+        },
       });
     }
 
     if (!ALLOWED_TYPES_BY_RULES[rule].includes(type)) {
       errors.push({
-        message: INVALID_RULE_VALUE,
+        target: filter,
         property,
-        rule,
         value,
+        constraints: {
+          [rule]: INVALID_RULE_VALUE(rule),
+        },
       });
     }
   }
