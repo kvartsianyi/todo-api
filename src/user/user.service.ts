@@ -1,9 +1,13 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 
 import { UserEntity } from './user.entity';
 import { BcryptService } from '@common/bcrypt/bcrypt.service';
+import { USER_ERRORS } from './constants';
+import { ValidationException } from '@/common/exceptions';
+
+const { USERNAME_ALREADY_TAKEN } = USER_ERRORS;
 
 @Injectable()
 export class UserService {
@@ -31,7 +35,7 @@ export class UserService {
     });
 
     if (existingUser) {
-      throw new BadRequestException('Username is already taken');
+      throw new ValidationException(USERNAME_ALREADY_TAKEN);
     }
 
     const password = await this.bcryptService.hashPassword(
