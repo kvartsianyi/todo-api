@@ -29,7 +29,7 @@ export enum FilterTypeEnum {
 
 export const generateFilterParamRegex = (fields: string[]): RegExp =>
   new RegExp(
-    `^filter\\[(${fields.join('|')})\\]\\[(${Object.values(FilterRuleEnum).join('|')})\\]$`,
+    `^filter\\[(${fields.join('|')})\\](?:\\[(${Object.values(FilterRuleEnum).join('|')})\\])?$`,
   );
 
 export const FILTER_RULES_BY_TYPES: Record<string, FilterRuleEnum[]> = {

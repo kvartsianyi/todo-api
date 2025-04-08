@@ -1,14 +1,16 @@
-import * as qs from 'qs';
+import { ValidationError } from 'class-validator';
 
 import {
   ALLOWED_TYPES_BY_RULES,
   FILTER_ERRORS,
+  FILTER_RULES_BY_TYPES,
   FilterRuleEnum,
+  FilterTypeEnum,
   generateFilterParamRegex,
+  SQUARE_BRACKETS_VALUE_REGEX,
 } from '../constants';
 import { IQueryFilter, QueryFilterValueType } from '../interfaces';
-import { getFilterPropertyType, parseObject } from './type.util';
-import { ValidationError } from 'class-validator';
+import { getFilterPropertyType, parseValue } from './type.util';
 
 const { PROPERTY_RULE_NOT_SUPPORTED, INVALID_RULE_VALUE } = FILTER_ERRORS;
 
@@ -30,19 +32,27 @@ export const pickFilterParams = (
 export const parseFilterParams = (
   queryParams: Record<string, any>,
 ): IQueryFilter[] => {
-  const { filter: filterData } = qs.parse(queryParams, { comma: true });
-  const filterParams = parseObject(filterData as Record<string, any>);
-
   const filters: IQueryFilter[] = [];
 
-  for (const [property, operationsData] of Object.entries(filterParams)) {
-    Object.entries(operationsData).forEach(([rule, value]) =>
-      filters.push({
-        property,
-        rule: rule as FilterRuleEnum,
-        value: value as QueryFilterValueType,
-      }),
-    );
+  for (const [rawFilter, value] of Object.entries(queryParams)) {
+    let parsedValue: QueryFilterValueType = value;
+    const [property, rule = FilterRuleEnum.EQUALS] = [
+      ...rawFilter.matchAll(SQUARE_BRACKETS_VALUE_REGEX),
+    ].map((match) => match[1]);
+
+    const isArrayTypeRule = FILTER_RULES_BY_TYPES[
+      FilterTypeEnum.ARRAY
+    ].includes(rule as FilterRuleEnum);
+
+    if (isArrayTypeRule && value.includes(',')) {
+      parsedValue = value.split(',');
+    }
+
+    filters.push({
+      property,
+      rule: rule as FilterRuleEnum,
+      value: parseValue(parsedValue) as QueryFilterValueType,
+    });
   }
 
   return filters;
