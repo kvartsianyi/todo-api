@@ -22,7 +22,7 @@ export class TodoEntity extends BaseEntity {
   @Column({ name: 'user_id' })
   userId: number;
 
-  @Column({ type: 'timestamptz', name: 'due_at' })
+  @Column({ type: 'timestamptz', name: 'due_at', default: null })
   readonly dueAt: Date;
 
   @ManyToOne(() => UserEntity, (user) => user.todos, { onDelete: 'CASCADE' })

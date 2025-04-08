@@ -1,4 +1,5 @@
-import { IsDate, IsOptional, IsString, Length } from 'class-validator';
+import { IsOptional, IsString, Length } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 import {
   DESCRIPTION_MAX_LENGTH,
@@ -6,7 +7,11 @@ import {
   TITLE_MAX_LENGTH,
   TITLE_MIN_LENGTH,
 } from '../constants';
-import { Transform, Type } from 'class-transformer';
+import { IsDateFormat } from '@/common/decorators';
+import {
+  INVALID_ISO8601_FORMAT_ERROR,
+  ISO_8601_UTC_REGEX,
+} from '@/common/constants';
 
 export class CreateTodoDto {
   @IsString()
@@ -21,7 +26,8 @@ export class CreateTodoDto {
   public readonly description?: string;
 
   @IsOptional()
-  @IsDate()
-  @Type(() => Date)
+  @IsDateFormat(ISO_8601_UTC_REGEX, {
+    message: INVALID_ISO8601_FORMAT_ERROR,
+  })
   public readonly dueAt?: Date;
 }

@@ -1,5 +1,5 @@
-import { IsDate, IsEnum, IsOptional, IsString, Length } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { IsEnum, IsOptional, IsString, Length } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 import {
   TodoStatusEnum,
@@ -8,6 +8,11 @@ import {
   DESCRIPTION_MIN_LENGTH,
   DESCRIPTION_MAX_LENGTH,
 } from '../constants';
+import { IsDateFormat } from '@/common/decorators';
+import {
+  INVALID_ISO8601_FORMAT_ERROR,
+  ISO_8601_UTC_REGEX,
+} from '@/common/constants';
 
 export class UpdateTodoDto {
   @IsOptional()
@@ -27,7 +32,8 @@ export class UpdateTodoDto {
   public readonly description?: string;
 
   @IsOptional()
-  @IsDate()
-  @Type(() => Date)
+  @IsDateFormat(ISO_8601_UTC_REGEX, {
+    message: INVALID_ISO8601_FORMAT_ERROR,
+  })
   public readonly dueAt?: Date;
 }
