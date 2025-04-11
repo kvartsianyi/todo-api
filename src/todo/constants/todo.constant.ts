@@ -1,8 +1,5 @@
-import {
-  FILTER_RULES_BY_TYPES,
-  FilterRuleEnum,
-  FilterTypeEnum,
-} from '@/common/constants';
+import { FilterTypeEnum } from '@/common/constants';
+import { QueryFilterFieldOptions } from '@/common/interfaces';
 
 export enum TodoStatusEnum {
   TODO = 'todo',
@@ -10,13 +7,19 @@ export enum TodoStatusEnum {
 }
 
 export const TODO_SORTABLE_FIELDS: string[] = ['title'] as const;
-export const TODO_FILTERABLE_FIELDS: Record<string, FilterRuleEnum[]> = {
-  id: [
-    ...FILTER_RULES_BY_TYPES[FilterTypeEnum.NUMBER],
-    ...FILTER_RULES_BY_TYPES[FilterTypeEnum.ARRAY],
-  ],
-  title: FILTER_RULES_BY_TYPES[FilterTypeEnum.STRING],
-  createdAt: FILTER_RULES_BY_TYPES[FilterTypeEnum.DATE],
+export const TODO_FILTERABLE_FIELDS: Record<string, QueryFilterFieldOptions> = {
+  id: {
+    type: FilterTypeEnum.NUMBER,
+  },
+  title: {
+    type: FilterTypeEnum.STRING,
+  },
+  createdAt: {
+    type: FilterTypeEnum.DATE,
+  },
+  dueAt: {
+    type: FilterTypeEnum.DATE,
+  },
 } as const;
 
 export const TITLE_MIN_LENGTH = 3;

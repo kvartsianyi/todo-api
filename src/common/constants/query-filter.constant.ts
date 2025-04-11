@@ -1,10 +1,3 @@
-export enum SortOrderEnum {
-  ASC = 'ASC',
-  DESC = 'DESC',
-}
-
-export const SORTING_DEFAULT_DIRECTION = SortOrderEnum.ASC;
-
 export enum FilterRuleEnum {
   EQUALS = 'eq',
   NOT_EQUALS = 'neq',
@@ -32,12 +25,14 @@ export const generateFilterParamRegex = (fields: string[]): RegExp =>
     `^filter\\[(${fields.join('|')})\\](?:\\[(${Object.values(FilterRuleEnum).join('|')})\\])?$`,
   );
 
-export const FILTER_RULES_BY_TYPES: Record<string, FilterRuleEnum[]> = {
+export const ALLOWED_FILTER_RULES_MAP: Record<string, FilterRuleEnum[]> = {
   [FilterTypeEnum.STRING]: [
     FilterRuleEnum.EQUALS,
     FilterRuleEnum.NOT_EQUALS,
     FilterRuleEnum.LIKE,
     FilterRuleEnum.NOT_LIKE,
+    FilterRuleEnum.IN,
+    FilterRuleEnum.NOT_IN,
   ],
   [FilterTypeEnum.NUMBER]: [
     FilterRuleEnum.EQUALS,
@@ -46,6 +41,8 @@ export const FILTER_RULES_BY_TYPES: Record<string, FilterRuleEnum[]> = {
     FilterRuleEnum.GREATER_THAN_OR_EQUALS,
     FilterRuleEnum.LESS_THAN,
     FilterRuleEnum.LESS_THAN_OR_EQUALS,
+    FilterRuleEnum.IN,
+    FilterRuleEnum.NOT_IN,
   ],
   [FilterTypeEnum.BOOLEAN]: [FilterRuleEnum.EQUALS, FilterRuleEnum.NOT_EQUALS],
   [FilterTypeEnum.DATE]: [
@@ -56,34 +53,4 @@ export const FILTER_RULES_BY_TYPES: Record<string, FilterRuleEnum[]> = {
     FilterRuleEnum.LESS_THAN,
     FilterRuleEnum.LESS_THAN_OR_EQUALS,
   ],
-  [FilterTypeEnum.ARRAY]: [FilterRuleEnum.IN, FilterRuleEnum.NOT_IN],
-};
-
-export const ALLOWED_TYPES_BY_RULES: Record<FilterRuleEnum, string[]> = {
-  [FilterRuleEnum.EQUALS]: [
-    FilterTypeEnum.STRING,
-    FilterTypeEnum.NUMBER,
-    FilterTypeEnum.BOOLEAN,
-    FilterTypeEnum.DATE,
-  ],
-  [FilterRuleEnum.NOT_EQUALS]: [
-    FilterTypeEnum.STRING,
-    FilterTypeEnum.NUMBER,
-    FilterTypeEnum.BOOLEAN,
-    FilterTypeEnum.DATE,
-  ],
-  [FilterRuleEnum.GREATER_THAN]: [FilterTypeEnum.NUMBER, FilterTypeEnum.DATE],
-  [FilterRuleEnum.GREATER_THAN_OR_EQUALS]: [
-    FilterTypeEnum.NUMBER,
-    FilterTypeEnum.DATE,
-  ],
-  [FilterRuleEnum.LESS_THAN]: [FilterTypeEnum.NUMBER, FilterTypeEnum.DATE],
-  [FilterRuleEnum.LESS_THAN_OR_EQUALS]: [
-    FilterTypeEnum.NUMBER,
-    FilterTypeEnum.DATE,
-  ],
-  [FilterRuleEnum.LIKE]: [FilterTypeEnum.STRING],
-  [FilterRuleEnum.NOT_LIKE]: [FilterTypeEnum.STRING],
-  [FilterRuleEnum.IN]: [FilterTypeEnum.ARRAY],
-  [FilterRuleEnum.NOT_IN]: [FilterTypeEnum.ARRAY],
 };

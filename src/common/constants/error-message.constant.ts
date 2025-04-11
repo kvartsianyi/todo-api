@@ -23,4 +23,6 @@ export const FILTER_ERRORS = {
   RULE_NOT_SUPPORTED: `The rule is not supported.`,
   PROPERTY_RULE_NOT_SUPPORTED: (rule: string, field: string, rules: string[]) =>
     `The rule ${rule} not supported for the ${field} field. Allowed rules: ${rules.join(', ')}.`,
+  FIELD_IS_NOT_FILTERABLE: (fields: string[]) =>
+    `Filtering must be performed by one of the following fields: ${fields.join(', ')}`,
 } as const;

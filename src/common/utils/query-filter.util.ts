@@ -1,0 +1,201 @@
+import { ValidationError } from 'class-validator';
+import * as qs from 'qs';
+import { parseISO, isValid, isDate } from 'date-fns';
+import { isFinite, isBoolean, isString, isArray, toNumber } from 'lodash';
+
+import {
+  FILTER_ERRORS,
+  ALLOWED_FILTER_RULES_MAP,
+  FilterRuleEnum,
+  FilterTypeEnum,
+  generateFilterParamRegex,
+} from '../constants';
+import {
+  QueryFilter,
+  QueryFilterFieldOptions,
+  QueryFilterValueType,
+} from '../interfaces';
+
+const {
+  PROPERTY_RULE_NOT_SUPPORTED,
+  FIELD_IS_NOT_FILTERABLE,
+  INVALID_RULE_VALUE,
+} = FILTER_ERRORS;
+
+export const normalizeFilterKeys = (
+  query: Record<string, any>,
+): Record<string, any> => {
+  const normalizedQuery: Record<string, any> = {};
+
+  for (const key in query) {
+    const defaultRule = '[eq]';
+    const isFilterWithoutRule = key.match(/^filter\[(\w+)]$/);
+
+    if (isFilterWithoutRule) {
+      const newKey = key + defaultRule;
+      normalizedQuery[newKey] = query[key];
+      continue;
+    }
+
+    normalizedQuery[key] = query[key];
+  }
+
+  return normalizedQuery;
+};
+
+export const pickFilterParams = (
+  queryParams: Record<string, any>,
+  fields: string[],
+): Record<string, any> => {
+  const filterParamRegex = generateFilterParamRegex(fields);
+
+  const filterParams = Object.entries(queryParams).reduce(
+    (acc, [key, value]) =>
+      filterParamRegex.test(key) ? { ...acc, [key]: value } : acc,
+    {},
+  );
+
+  return filterParams;
+};
+
+const transformFilterValue = (
+  rule: FilterRuleEnum,
+  propertyType: FilterTypeEnum,
+  value: string,
+): QueryFilterValueType => {
+  const isArrayLikeRule = [FilterRuleEnum.IN, FilterRuleEnum.NOT_IN].includes(
+    rule,
+  );
+
+  const transformToArray = <T>(
+    value: string,
+    transformFn?: (value: string) => T,
+  ): (string | T)[] =>
+    value.includes(',')
+      ? value.split(',').map((v) => (transformFn ? transformFn(v) : v))
+      : [transformFn ? transformFn(value) : value];
+
+  const transformMap = {
+    [FilterTypeEnum.STRING]: (value: string) =>
+      isArrayLikeRule ? transformToArray<string>(value) : value,
+    [FilterTypeEnum.NUMBER]: (value: string) =>
+      isArrayLikeRule
+        ? transformToArray<number>(value, toNumber)
+        : toNumber(value),
+    [FilterTypeEnum.BOOLEAN]: (value: string) =>
+      new Map([
+        ['true', true],
+        ['false', false],
+      ]).get(value) ?? value,
+    [FilterTypeEnum.DATE]: (value: string) => parseISO(value),
+  };
+
+  return transformMap[propertyType](value);
+};
+
+export const parseFilterParams = (
+  queryParams: Record<string, any>,
+  filterableFieldsMap: Record<string, QueryFilterFieldOptions>,
+): QueryFilter[] => {
+  const filters: QueryFilter[] = [];
+
+  const { filter } = qs.parse(queryParams);
+  const filterMap = filter as Record<string, { [key: string]: string }>;
+
+  for (const [property] of Object.entries(filterMap)) {
+    const rules = filterMap[property];
+    const propertyType = filterableFieldsMap[property]?.type;
+
+    for (const [rule, value] of Object.entries(rules)) {
+      const filterRule = rule as FilterRuleEnum;
+
+      filters.push({
+        property,
+        rule: filterRule,
+        value: transformFilterValue(filterRule, propertyType, value),
+      });
+    }
+  }
+
+  return filters;
+};
+
+const isFilterValueValid = (
+  rule: FilterRuleEnum,
+  propertyType: FilterTypeEnum,
+  value: QueryFilterValueType,
+): boolean => {
+  const isArrayLikeRule = [FilterRuleEnum.IN, FilterRuleEnum.NOT_IN].includes(
+    rule,
+  );
+
+  const isArrayValid = (
+    value: unknown,
+    validationFn: (value: unknown) => boolean,
+  ): boolean => isArray(value) && value.every(validationFn);
+
+  const validationMap = {
+    [FilterTypeEnum.STRING]: (value: QueryFilterValueType) =>
+      isArrayLikeRule ? isArrayValid(value, isString) : isString(value),
+    [FilterTypeEnum.NUMBER]: (value: QueryFilterValueType) =>
+      isArrayLikeRule ? isArrayValid(value, isFinite) : isFinite(value),
+    [FilterTypeEnum.BOOLEAN]: (value: QueryFilterValueType) => isBoolean(value),
+    [FilterTypeEnum.DATE]: (value: QueryFilterValueType) =>
+      isDate(value) && isValid(value),
+  };
+
+  return validationMap[propertyType](value);
+};
+
+export const validateFilters = (
+  filters: QueryFilter[],
+  filterableFieldsMap: Record<string, QueryFilterFieldOptions>,
+): ValidationError[] => {
+  const buildConstraints = (rule: FilterRuleEnum, message: string) => ({
+    [rule]: message,
+  });
+  const buildValidationError = (
+    filter: QueryFilter,
+    message: string,
+  ): ValidationError => ({
+    target: filter,
+    property: filter.property,
+    value: filter.value,
+    constraints: buildConstraints(filter.rule, message),
+  });
+
+  const errors: ValidationError[] = [];
+
+  for (const filter of filters) {
+    const { property, rule, value } = filter;
+    const field = filterableFieldsMap[property];
+
+    if (!field) {
+      errors.push(
+        buildValidationError(
+          filter,
+          FIELD_IS_NOT_FILTERABLE(Object.keys(filterableFieldsMap)),
+        ),
+      );
+      continue;
+    }
+
+    const { type, rules } = field;
+    const allowedRules = rules ?? ALLOWED_FILTER_RULES_MAP[type];
+
+    if (!allowedRules.includes(rule)) {
+      errors.push(
+        buildValidationError(
+          filter,
+          PROPERTY_RULE_NOT_SUPPORTED(rule, property, allowedRules),
+        ),
+      );
+    }
+
+    if (!isFilterValueValid(rule, type, value)) {
+      errors.push(buildValidationError(filter, INVALID_RULE_VALUE(rule)));
+    }
+  }
+
+  return errors;
+};
