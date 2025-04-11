@@ -22,22 +22,19 @@ const {
   INVALID_RULE_VALUE,
 } = FILTER_ERRORS;
 
-export const normalizeFilterKeys = (
+export const normalizeFilterParams = (
   query: Record<string, any>,
 ): Record<string, any> => {
   const normalizedQuery: Record<string, any> = {};
 
-  for (const key in query) {
+  for (const [key, value] of Object.entries(query)) {
     const defaultRule = '[eq]';
     const isFilterWithoutRule = key.match(/^filter\[(\w+)]$/);
 
-    if (isFilterWithoutRule) {
-      const newKey = key + defaultRule;
-      normalizedQuery[newKey] = query[key];
-      continue;
-    }
+    const normalizedKey = isFilterWithoutRule ? key + defaultRule : key;
+    const normalizedValue = isArray(value) ? value.at(-1) : value;
 
-    normalizedQuery[key] = query[key];
+    normalizedQuery[normalizedKey] = normalizedValue;
   }
 
   return normalizedQuery;
