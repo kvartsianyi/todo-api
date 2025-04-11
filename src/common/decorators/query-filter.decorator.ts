@@ -2,7 +2,7 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 
 import {
-  normalizeFilterKeys,
+  normalizeFilterParams,
   parseFilterParams,
   pickFilterParams,
   validateFilters,
@@ -21,11 +21,8 @@ export const FilteringQuery = createParamDecorator(
       req.query,
       Object.keys(filterableFieldsMap),
     );
-    const normalizeFilterParams = normalizeFilterKeys(rawFilterParams);
-    const filters = parseFilterParams(
-      normalizeFilterParams,
-      filterableFieldsMap,
-    );
+    const normalizedParams = normalizeFilterParams(rawFilterParams);
+    const filters = parseFilterParams(normalizedParams, filterableFieldsMap);
 
     const errors = validateFilters(filters, filterableFieldsMap);
 
