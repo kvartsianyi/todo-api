@@ -18,7 +18,7 @@ import {
   PAGINATION_DEFAULT_PAGE,
   PAGINATION_DEFAULT_SIZE,
 } from '../constants';
-import { IPaginatedResource, IQueryFilter } from '../interfaces';
+import { IPaginatedResource, QueryFilter } from '../interfaces';
 
 export const createEnumTypeQuery = (
   typeName: string,
@@ -60,7 +60,7 @@ export const applySorting = <T extends ObjectLiteral>(
 
 export const applyFilters = <T extends ObjectLiteral>(
   qb: SelectQueryBuilder<T>,
-  filters: IQueryFilter[],
+  filters: QueryFilter[],
 ): SelectQueryBuilder<T> => {
   if (!filters?.length) return qb;
 

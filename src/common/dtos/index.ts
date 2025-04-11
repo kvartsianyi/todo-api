@@ -1,1 +1,2 @@
-export * from './filter.dto';
+export * from './sorting.dto';
+export * from './pagination.dto';

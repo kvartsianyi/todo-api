@@ -25,7 +25,7 @@ import {
   User,
 } from '@/common/decorators';
 import { PaginationDto, SortingDto } from '@/common/dtos';
-import { IPaginatedResource, IQueryFilter } from '@/common/interfaces';
+import { IPaginatedResource, QueryFilter } from '@/common/interfaces';
 import { TODO_FILTERABLE_FIELDS, TODO_SORTABLE_FIELDS } from './constants';
 
 @Controller('todos')
@@ -39,7 +39,7 @@ export class TodoController {
     @User() user: UserEntity,
     @PaginationQuery() pagination: PaginationDto,
     @SortingQuery(TODO_SORTABLE_FIELDS) sorting: SortingDto,
-    @FilteringQuery(TODO_FILTERABLE_FIELDS) filters: IQueryFilter[],
+    @FilteringQuery(TODO_FILTERABLE_FIELDS) filters: QueryFilter[],
   ): Promise<IPaginatedResource<TodoEntity>> {
     return this.todoService.findAllTodos({
       whereParams: { userId: user.id },

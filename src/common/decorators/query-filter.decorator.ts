@@ -1,26 +1,32 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 
-import { parseFilterParams, pickFilterParams, validateFilters } from '../utils';
-import { IQueryFilter } from '../interfaces';
 import {
-  FILTER_VALIDATION_EXCEPTION_MESSAGE,
-  FilterRuleEnum,
-} from '../constants';
+  normalizeFilterKeys,
+  parseFilterParams,
+  pickFilterParams,
+  validateFilters,
+} from '../utils';
+import { QueryFilter, QueryFilterFieldOptions } from '../interfaces';
+import { FILTER_VALIDATION_EXCEPTION_MESSAGE } from '../constants';
 import { ValidationException } from '../exceptions';
 
 export const FilteringQuery = createParamDecorator(
   (
-    filterableFieldsMap: Record<string, FilterRuleEnum[]>,
+    filterableFieldsMap: Record<string, QueryFilterFieldOptions>,
     ctx: ExecutionContext,
-  ): IQueryFilter[] => {
+  ): QueryFilter[] => {
     const req: Request = ctx.switchToHttp().getRequest();
-
     const rawFilterParams = pickFilterParams(
       req.query,
       Object.keys(filterableFieldsMap),
     );
-    const filters = parseFilterParams(rawFilterParams);
+    const normalizeFilterParams = normalizeFilterKeys(rawFilterParams);
+    const filters = parseFilterParams(
+      normalizeFilterParams,
+      filterableFieldsMap,
+    );
+
     const errors = validateFilters(filters, filterableFieldsMap);
 
     if (errors.length) {
