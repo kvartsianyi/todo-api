@@ -9,6 +9,7 @@ export enum FilterRuleEnum {
   NOT_LIKE = 'nlike',
   IN = 'in',
   NOT_IN = 'nin',
+  IS_NULL = 'isnull',
 }
 
 export enum FilterTypeEnum {
@@ -33,6 +34,7 @@ export const ALLOWED_FILTER_RULES_MAP: Record<string, FilterRuleEnum[]> = {
     FilterRuleEnum.NOT_LIKE,
     FilterRuleEnum.IN,
     FilterRuleEnum.NOT_IN,
+    FilterRuleEnum.IS_NULL,
   ],
   [FilterTypeEnum.NUMBER]: [
     FilterRuleEnum.EQUALS,
@@ -43,6 +45,7 @@ export const ALLOWED_FILTER_RULES_MAP: Record<string, FilterRuleEnum[]> = {
     FilterRuleEnum.LESS_THAN_OR_EQUALS,
     FilterRuleEnum.IN,
     FilterRuleEnum.NOT_IN,
+    FilterRuleEnum.IS_NULL,
   ],
   [FilterTypeEnum.BOOLEAN]: [FilterRuleEnum.EQUALS, FilterRuleEnum.NOT_EQUALS],
   [FilterTypeEnum.DATE]: [
@@ -52,5 +55,6 @@ export const ALLOWED_FILTER_RULES_MAP: Record<string, FilterRuleEnum[]> = {
     FilterRuleEnum.GREATER_THAN_OR_EQUALS,
     FilterRuleEnum.LESS_THAN,
     FilterRuleEnum.LESS_THAN_OR_EQUALS,
+    FilterRuleEnum.IS_NULL,
   ],
 };

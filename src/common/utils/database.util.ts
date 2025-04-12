@@ -9,6 +9,7 @@ import {
   Not,
   ObjectLiteral,
   SelectQueryBuilder,
+  IsNull,
 } from 'typeorm';
 
 import { PaginationDto, SortingDto } from '../dtos';
@@ -99,6 +100,9 @@ export const applyFilters = <T extends ObjectLiteral>(
       case FilterRuleEnum.NOT_IN:
         if (!Array.isArray(value)) break;
         qb.andWhere({ [property]: Not(In(value)) });
+        break;
+      case FilterRuleEnum.IS_NULL:
+        qb.andWhere({ [property]: value ? IsNull() : Not(IsNull()) });
         break;
       default:
         throw new Error(FILTER_ERRORS.RULE_NOT_SUPPORTED);

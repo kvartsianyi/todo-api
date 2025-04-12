@@ -63,6 +63,7 @@ const transformFilterValue = (
   const isArrayLikeRule = [FilterRuleEnum.IN, FilterRuleEnum.NOT_IN].includes(
     rule,
   );
+  const isNullableRule = FilterRuleEnum.IS_NULL === rule;
 
   const transformToArray = <T>(
     value: string,
@@ -72,19 +73,28 @@ const transformFilterValue = (
       ? value.split(',').map((v) => (transformFn ? transformFn(v) : v))
       : [transformFn ? transformFn(value) : value];
 
+  const transformToBoolean = (value: string) =>
+    new Map([
+      ['true', true],
+      ['false', false],
+    ]).get(value) ?? value;
+
   const transformMap = {
-    [FilterTypeEnum.STRING]: (value: string) =>
-      isArrayLikeRule ? transformToArray<string>(value) : value,
-    [FilterTypeEnum.NUMBER]: (value: string) =>
-      isArrayLikeRule
-        ? transformToArray<number>(value, toNumber)
-        : toNumber(value),
-    [FilterTypeEnum.BOOLEAN]: (value: string) =>
-      new Map([
-        ['true', true],
-        ['false', false],
-      ]).get(value) ?? value,
-    [FilterTypeEnum.DATE]: (value: string) => parseISO(value),
+    [FilterTypeEnum.STRING]: (value: string) => {
+      if (isNullableRule) return transformToBoolean(value);
+      if (isArrayLikeRule) return transformToArray<string>(value);
+
+      return value;
+    },
+    [FilterTypeEnum.NUMBER]: (value: string) => {
+      if (isNullableRule) return transformToBoolean(value);
+      if (isArrayLikeRule) return transformToArray<number>(value, toNumber);
+
+      return value;
+    },
+    [FilterTypeEnum.BOOLEAN]: (value: string) => transformToBoolean(value),
+    [FilterTypeEnum.DATE]: (value: string) =>
+      isNullableRule ? transformToBoolean(value) : parseISO(value),
   };
 
   return transformMap[propertyType](value);
@@ -125,6 +135,7 @@ const isFilterValueValid = (
   const isArrayLikeRule = [FilterRuleEnum.IN, FilterRuleEnum.NOT_IN].includes(
     rule,
   );
+  const isNullableRule = FilterRuleEnum.IS_NULL === rule;
 
   const isArrayValid = (
     value: unknown,
@@ -132,13 +143,21 @@ const isFilterValueValid = (
   ): boolean => isArray(value) && value.every(validationFn);
 
   const validationMap = {
-    [FilterTypeEnum.STRING]: (value: QueryFilterValueType) =>
-      isArrayLikeRule ? isArrayValid(value, isString) : isString(value),
-    [FilterTypeEnum.NUMBER]: (value: QueryFilterValueType) =>
-      isArrayLikeRule ? isArrayValid(value, isFinite) : isFinite(value),
+    [FilterTypeEnum.STRING]: (value: QueryFilterValueType) => {
+      if (isNullableRule) return isBoolean(value);
+      if (isArrayLikeRule) return isArrayValid(value, isString);
+
+      return isString(value);
+    },
+    [FilterTypeEnum.NUMBER]: (value: QueryFilterValueType) => {
+      if (isNullableRule) return isBoolean(value);
+      if (isArrayLikeRule) return isArrayValid(value, isFinite);
+
+      return isFinite(value);
+    },
     [FilterTypeEnum.BOOLEAN]: (value: QueryFilterValueType) => isBoolean(value),
     [FilterTypeEnum.DATE]: (value: QueryFilterValueType) =>
-      isDate(value) && isValid(value),
+      isNullableRule ? isBoolean(value) : isDate(value) && isValid(value),
   };
 
   return validationMap[propertyType](value);
