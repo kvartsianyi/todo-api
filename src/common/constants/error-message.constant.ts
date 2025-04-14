@@ -1,3 +1,6 @@
+export const INTERNAL_SERVER_EXCEPTION_MESSAGE =
+  'Something went wrong. Please try again.';
+
 export const DEFAULT_VALIDATION_EXCEPTION_MESSAGE = 'Validation Error';
 export const FILTER_VALIDATION_EXCEPTION_MESSAGE = 'Filter Validation Error';
 export const SORT_VALIDATION_EXCEPTION_MESSAGE = 'Sort Validation Error';
