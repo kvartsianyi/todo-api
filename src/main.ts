@@ -4,9 +4,11 @@ import { ValidationError } from 'class-validator';
 
 import { AppModule } from './app.module';
 import { ValidationException } from './common/exceptions';
+import { HttpExceptionsFilter } from './common/filters';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useGlobalFilters(new HttpExceptionsFilter());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.useGlobalPipes(
     new ValidationPipe({

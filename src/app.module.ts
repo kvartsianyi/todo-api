@@ -6,7 +6,7 @@ import { TodoModule } from './todo/todo.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { BcryptModule } from '@common/bcrypt/bcrypt.module';
-import { MorganMiddleware } from './common/middlewares';
+import { CorrelationIdMiddleware, MorganMiddleware } from '@common/middlewares';
 
 @Module({
   imports: [
@@ -33,6 +33,6 @@ import { MorganMiddleware } from './common/middlewares';
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(MorganMiddleware).forRoutes('*');
+    consumer.apply(MorganMiddleware, CorrelationIdMiddleware).forRoutes('*');
   }
 }
