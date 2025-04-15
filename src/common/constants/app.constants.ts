@@ -12,3 +12,5 @@ export enum MorganFormatEnum {
   SHORT = 'short',
   TINY = 'tiny',
 }
+
+export const CORRELATION_ID_HEADER = 'x-correlation-id';

@@ -4,17 +4,24 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 
-import { INTERNAL_SERVER_EXCEPTION_MESSAGE } from '../constants';
+import {
+  CORRELATION_ID_HEADER,
+  INTERNAL_SERVER_EXCEPTION_MESSAGE,
+} from '../constants';
 
 @Catch()
 export class HttpExceptionsFilter implements ExceptionFilter {
-  catch(exception: unknown, host: ArgumentsHost) {
+  private readonly logger = new Logger(HttpExceptionsFilter.name);
+
+  catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
+    const req = ctx.getRequest<Request>();
+    const res = ctx.getResponse<Response>();
+    const correlationId = res.get(CORRELATION_ID_HEADER);
     const isHttpException = exception instanceof HttpException;
 
     const status = isHttpException
@@ -25,7 +32,17 @@ export class HttpExceptionsFilter implements ExceptionFilter {
       ? exception.getResponse()
       : INTERNAL_SERVER_EXCEPTION_MESSAGE;
 
-    response.status(status).json({
+    const isCriticalError =
+      (status as HttpStatus) >= HttpStatus.INTERNAL_SERVER_ERROR;
+
+    if (isCriticalError) {
+      this.logger.error(
+        `(${correlationId}) ${req.method} ${req.url} - ${status}\n${exception.message || ''}`,
+        exception.stack || '',
+      );
+    }
+
+    res.status(status).json({
       statusCode: status,
       ...(typeof message === 'string' ? { message } : message),
     });
