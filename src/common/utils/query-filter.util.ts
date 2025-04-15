@@ -11,6 +11,7 @@ import {
   generateFilterParamRegex,
 } from '../constants';
 import {
+  EnumFilterField,
   QueryFilter,
   QueryFilterFieldOptions,
   QueryFilterValueType,
@@ -65,13 +66,13 @@ const transformFilterValue = (
   );
   const isNullableRule = FilterRuleEnum.IS_NULL === rule;
 
-  const transformToArray = <T>(
+  const transformToArray = <T = string>(
     value: string,
-    transformFn?: (value: string) => T,
-  ): (string | T)[] =>
+    transformFn: (value: string) => T = (v) => v as unknown as T,
+  ): T[] =>
     value.includes(',')
-      ? value.split(',').map((v) => (transformFn ? transformFn(v) : v))
-      : [transformFn ? transformFn(value) : value];
+      ? value.split(',').map((v) => transformFn(v))
+      : [transformFn(value)];
 
   const transformToBoolean = (value: string) =>
     new Map([
@@ -95,6 +96,8 @@ const transformFilterValue = (
     [FilterTypeEnum.BOOLEAN]: (value: string) => transformToBoolean(value),
     [FilterTypeEnum.DATE]: (value: string) =>
       isNullableRule ? transformToBoolean(value) : parseISO(value),
+    [FilterTypeEnum.ENUM]: (value: string) =>
+      isArrayLikeRule ? transformToArray<string>(value) : value,
   };
 
   return transformMap[propertyType](value);
@@ -128,10 +131,12 @@ export const parseFilterParams = (
 };
 
 const isFilterValueValid = (
+  fieldOptions: QueryFilterFieldOptions,
   rule: FilterRuleEnum,
-  propertyType: FilterTypeEnum,
   value: QueryFilterValueType,
 ): boolean => {
+  const { type: fieldType } = fieldOptions;
+
   const isArrayLikeRule = [FilterRuleEnum.IN, FilterRuleEnum.NOT_IN].includes(
     rule,
   );
@@ -141,6 +146,8 @@ const isFilterValueValid = (
     value: unknown,
     validationFn: (value: unknown) => boolean,
   ): boolean => isArray(value) && value.every(validationFn);
+  const isInEnum = (value: string): boolean =>
+    (fieldOptions as EnumFilterField).enum.includes(value);
 
   const validationMap = {
     [FilterTypeEnum.STRING]: (value: QueryFilterValueType) => {
@@ -158,9 +165,13 @@ const isFilterValueValid = (
     [FilterTypeEnum.BOOLEAN]: (value: QueryFilterValueType) => isBoolean(value),
     [FilterTypeEnum.DATE]: (value: QueryFilterValueType) =>
       isNullableRule ? isBoolean(value) : isDate(value) && isValid(value),
+    [FilterTypeEnum.ENUM]: (value: QueryFilterValueType) =>
+      isArrayLikeRule
+        ? isArray(value) && value.every(isInEnum)
+        : isInEnum(value as string),
   };
 
-  return validationMap[propertyType](value);
+  return validationMap[fieldType](value);
 };
 
 export const validateFilters = (
@@ -208,7 +219,7 @@ export const validateFilters = (
       );
     }
 
-    if (!isFilterValueValid(rule, type, value)) {
+    if (!isFilterValueValid(field, rule, value)) {
       errors.push(buildValidationError(filter, INVALID_RULE_VALUE(rule)));
     }
   }

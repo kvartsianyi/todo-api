@@ -37,7 +37,7 @@ export class HttpExceptionsFilter implements ExceptionFilter {
 
     if (isCriticalError) {
       this.logger.error(
-        `(${correlationId}) ${req.method} ${req.url} - ${status}\n${exception.message || ''}`,
+        `(${correlationId}) ${req.method} ${req.url} - ${status}\nError: ${exception.message || ''}`,
         exception.stack || '',
       );
     }

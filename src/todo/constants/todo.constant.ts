@@ -14,6 +14,10 @@ export const TODO_FILTERABLE_FIELDS: Record<string, QueryFilterFieldOptions> = {
   title: {
     type: FilterTypeEnum.STRING,
   },
+  status: {
+    type: FilterTypeEnum.ENUM,
+    enum: Object.values(TodoStatusEnum),
+  },
   createdAt: {
     type: FilterTypeEnum.DATE,
   },

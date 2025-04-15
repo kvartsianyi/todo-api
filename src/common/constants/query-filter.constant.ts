@@ -17,8 +17,7 @@ export enum FilterTypeEnum {
   NUMBER = 'number',
   BOOLEAN = 'boolean',
   DATE = 'date',
-  OBJECT = 'object',
-  ARRAY = 'array',
+  ENUM = 'enum',
 }
 
 export const generateFilterParamRegex = (fields: string[]): RegExp =>
@@ -56,5 +55,11 @@ export const ALLOWED_FILTER_RULES_MAP: Record<string, FilterRuleEnum[]> = {
     FilterRuleEnum.LESS_THAN,
     FilterRuleEnum.LESS_THAN_OR_EQUALS,
     FilterRuleEnum.IS_NULL,
+  ],
+  [FilterTypeEnum.ENUM]: [
+    FilterRuleEnum.EQUALS,
+    FilterRuleEnum.NOT_EQUALS,
+    FilterRuleEnum.IN,
+    FilterRuleEnum.NOT_IN,
   ],
 };
