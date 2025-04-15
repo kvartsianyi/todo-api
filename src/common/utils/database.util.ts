@@ -95,11 +95,11 @@ export const applyFilters = <T extends ObjectLiteral>(
         break;
       case FilterRuleEnum.IN:
         if (!Array.isArray(value)) break;
-        qb.andWhere({ [property]: In(value) });
+        qb.andWhere({ [property]: In<number | string>(value) });
         break;
       case FilterRuleEnum.NOT_IN:
         if (!Array.isArray(value)) break;
-        qb.andWhere({ [property]: Not(In(value)) });
+        qb.andWhere({ [property]: Not(In<number | string>(value)) });
         break;
       case FilterRuleEnum.IS_NULL:
         qb.andWhere({ [property]: value ? IsNull() : Not(IsNull()) });
