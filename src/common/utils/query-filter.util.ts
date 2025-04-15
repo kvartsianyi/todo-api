@@ -106,7 +106,7 @@ export const parseFilterParams = (
 ): QueryFilter[] => {
   const filters: QueryFilter[] = [];
 
-  const { filter } = qs.parse(queryParams);
+  const { filter = {} } = qs.parse(queryParams);
   const filterMap = filter as Record<string, { [key: string]: string }>;
 
   for (const [property] of Object.entries(filterMap)) {
