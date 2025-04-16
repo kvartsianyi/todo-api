@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
-import { IJwtTokenPair } from './interfaces';
-import { RegisterUserDto } from './dtos';
+import { JwtTokenPairDto } from './dtos';
+import { RegisterUserDto } from '@/user/dtos';
 import { UserService } from '@/user/user.service';
 import { BcryptService } from '@/common/bcrypt/bcrypt.service';
 import { TokenTypeEnum } from './constants';
@@ -43,13 +43,13 @@ export class AuthService {
     return user;
   }
 
-  async refreshToken(userId: number): Promise<IJwtTokenPair> {
+  async refreshToken(userId: number): Promise<JwtTokenPairDto> {
     return {
       accessToken: await this.generateToken(userId),
     };
   }
 
-  async generateTokenPair(userId: number): Promise<IJwtTokenPair> {
+  async generateTokenPair(userId: number): Promise<JwtTokenPairDto> {
     const accessToken = await this.generateToken(userId);
     const refreshToken = await this.generateToken(
       userId,
