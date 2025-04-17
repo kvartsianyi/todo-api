@@ -12,9 +12,11 @@ import {
 import {
   pageProperty,
   pageSizeProperty,
-  paginatedResourceSchema,
   paginationSchema,
+  resourceProperty,
+  totalProperty,
 } from '../swagger/options';
+import { paginatedResourceSchema } from '../swagger/options/api-schema';
 
 @ApiSchema(paginationSchema)
 export class PaginationDto {
@@ -36,15 +38,15 @@ export class PaginationDto {
 
 @ApiSchema(paginatedResourceSchema)
 export class PaginatedResourceDto<T> {
-  @ApiProperty()
+  @ApiProperty(resourceProperty)
   data: T[];
 
-  @ApiProperty()
+  @ApiProperty(totalProperty)
   total: number;
 
-  @ApiProperty()
+  @ApiProperty(pageProperty)
   page: number;
 
-  @ApiProperty()
+  @ApiProperty(pageSizeProperty)
   size: number;
 }

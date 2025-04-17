@@ -11,6 +11,6 @@ export const loginSchema: ApiSchemaOptions = {
 };
 
 export const jwtTokenPairSchema: ApiSchemaOptions = {
-  name: 'Jwt token pair',
+  name: 'Token Pair schema',
   description: 'Jwt token pair schema. Include access and refresh token.',
 };
