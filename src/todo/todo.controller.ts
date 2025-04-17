@@ -12,6 +12,16 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 import { TodoService } from './todo.service';
 import { TodoEntity } from './todo.entity';
@@ -24,15 +34,44 @@ import {
   SortingQuery,
   User,
 } from '@/common/decorators';
-import { PaginationDto, SortingDto } from '@/common/dtos';
-import { IPaginatedResource, QueryFilter } from '@/common/interfaces';
+import { PaginatedResourceDto, PaginationDto, SortingDto } from '@/common/dtos';
+import { QueryFilter } from '@/common/interfaces';
 import { TODO_FILTERABLE_FIELDS, TODO_SORTABLE_FIELDS } from './constants';
+import {
+  createTodoOperation,
+  createTodoSuccessResponse,
+  deleteTodoOperation,
+  deleteTodoSuccessResponse,
+  getTodoByIdOperation,
+  getTodoByIdSuccessResponse,
+  getTodosOperation,
+  getTodosSuccessResponse,
+  jwtTokenInvalidResponse,
+  notFoundResponse,
+  patchTodoOperation,
+  patchTodoSuccessResponse,
+  queryParamsBadRequestResponse,
+  validationErrorResponse,
+} from '@/common/swagger/options';
+import {
+  ApiFilterQuery,
+  ApiPaginationQuery,
+  ApiSortingQuery,
+} from '@/common/swagger/decorators';
 
+@ApiBearerAuth()
 @Controller('todos')
 @UseGuards(JwtAuthGuard)
 export class TodoController {
   constructor(private readonly todoService: TodoService) {}
 
+  @ApiOperation(getTodosOperation)
+  @ApiOkResponse(getTodosSuccessResponse)
+  @ApiUnauthorizedResponse(jwtTokenInvalidResponse)
+  @ApiBadRequestResponse(queryParamsBadRequestResponse)
+  @ApiFilterQuery(TODO_FILTERABLE_FIELDS)
+  @ApiSortingQuery(TODO_SORTABLE_FIELDS)
+  @ApiPaginationQuery()
   @Get()
   @HttpCode(HttpStatus.OK)
   async getAllTodos(
@@ -40,7 +79,7 @@ export class TodoController {
     @PaginationQuery() pagination: PaginationDto,
     @SortingQuery(TODO_SORTABLE_FIELDS) sorting: SortingDto,
     @FilteringQuery(TODO_FILTERABLE_FIELDS) filters: QueryFilter[],
-  ): Promise<IPaginatedResource<TodoEntity>> {
+  ): Promise<PaginatedResourceDto<TodoEntity>> {
     return this.todoService.findAllTodos({
       whereParams: { userId: user.id },
       pagination,
@@ -49,7 +88,12 @@ export class TodoController {
     });
   }
 
+  @ApiOperation(getTodoByIdOperation)
+  @ApiOkResponse(getTodoByIdSuccessResponse)
+  @ApiUnauthorizedResponse(jwtTokenInvalidResponse)
+  @ApiNotFoundResponse(notFoundResponse)
   @Get(':id')
+  @HttpCode(HttpStatus.OK)
   async getTodo(
     @User() user: UserEntity,
     @Param('id', ParseIntPipe) id: number,
@@ -66,7 +110,12 @@ export class TodoController {
     return todo;
   }
 
+  @ApiOperation(createTodoOperation)
+  @ApiCreatedResponse(createTodoSuccessResponse)
+  @ApiUnauthorizedResponse(jwtTokenInvalidResponse)
+  @ApiBadRequestResponse(validationErrorResponse)
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   createTodo(
     @User() user: UserEntity,
     @Body() createTodoDto: CreateTodoDto,
@@ -77,7 +126,12 @@ export class TodoController {
     });
   }
 
+  @ApiOperation(patchTodoOperation)
+  @ApiOkResponse(patchTodoSuccessResponse)
+  @ApiUnauthorizedResponse(jwtTokenInvalidResponse)
+  @ApiBadRequestResponse(validationErrorResponse)
   @Patch(':id')
+  @HttpCode(HttpStatus.OK)
   async updateTodo(
     @Param('id', ParseIntPipe) id: number,
     @User() user: UserEntity,
@@ -97,6 +151,10 @@ export class TodoController {
     return this.todoService.findOneById(id);
   }
 
+  @ApiOperation(deleteTodoOperation)
+  @ApiNoContentResponse(deleteTodoSuccessResponse)
+  @ApiUnauthorizedResponse(jwtTokenInvalidResponse)
+  @ApiBadRequestResponse(validationErrorResponse)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeTodo(

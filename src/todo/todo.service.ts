@@ -8,9 +8,9 @@ import {
 } from 'typeorm';
 
 import { TodoEntity } from './todo.entity';
-import { PaginationDto, SortingDto } from '@/common/dtos';
+import { PaginatedResourceDto, PaginationDto, SortingDto } from '@/common/dtos';
 import { applyFilters, paginateQuery, applySorting } from '@/common/utils';
-import { IPaginatedResource, QueryFilter } from '@/common/interfaces';
+import { QueryFilter } from '@/common/interfaces';
 import { PAGINATION_DEFAULT_PARAMS } from '@/common/constants';
 
 @Injectable()
@@ -30,7 +30,7 @@ export class TodoService {
     pagination?: PaginationDto;
     sorting?: SortingDto;
     filters?: QueryFilter[];
-  }): Promise<IPaginatedResource<TodoEntity>> {
+  }): Promise<PaginatedResourceDto<TodoEntity>> {
     const qb = this.todoRepository
       .createQueryBuilder(TodoEntity.name)
       .where(whereParams);

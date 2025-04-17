@@ -25,9 +25,9 @@ import { CorrelationIdMiddleware, MorganMiddleware } from '@common/middlewares';
       }),
       inject: [ConfigService],
     }),
-    TodoModule,
-    UserModule,
     AuthModule,
+    UserModule,
+    TodoModule,
     BcryptModule,
   ],
 })
