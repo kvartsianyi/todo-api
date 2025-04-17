@@ -3,9 +3,14 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  MaxLength,
-  MinLength,
+  Length,
 } from 'class-validator';
+import {
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+} from '../constants';
 
 export class UserDto {
   @IsNumber()
@@ -13,13 +18,11 @@ export class UserDto {
   id: number;
 
   @IsString()
-  @MinLength(3, { message: 'Username must be at least 3 characters long' })
-  @MaxLength(50, { message: 'Username must be no longer 50 characters' })
+  @Length(USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH)
   username: string;
 
   @IsString()
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
-  @MaxLength(50, { message: 'Password must be no longer 50 characters' })
+  @Length(PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH)
   password: string;
 
   @IsOptional()
