@@ -12,14 +12,14 @@ import {
   IsNull,
 } from 'typeorm';
 
-import { PaginationDto, SortingDto } from '../dtos';
+import { PaginatedResourceDto, PaginationDto, SortingDto } from '../dtos';
 import {
   FILTER_ERRORS,
   FilterRuleEnum,
   PAGINATION_DEFAULT_PAGE,
   PAGINATION_DEFAULT_SIZE,
 } from '../constants';
-import { IPaginatedResource, QueryFilter } from '../interfaces';
+import { QueryFilter } from '../interfaces';
 
 export const createEnumTypeQuery = (
   typeName: string,
@@ -40,7 +40,7 @@ export const paginateQuery = async <T extends ObjectLiteral>(
     page = PAGINATION_DEFAULT_PAGE,
     size = PAGINATION_DEFAULT_SIZE,
   }: PaginationDto,
-): Promise<IPaginatedResource<T>> => {
+): Promise<PaginatedResourceDto<T>> => {
   const [data, total] = await qb
     .take(size)
     .skip((page - 1) * size)

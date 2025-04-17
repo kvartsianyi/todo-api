@@ -23,7 +23,7 @@ export const registrationBadRequestResponse: ApiResponseNoStatusOptions = {
   description: 'Invalid body or user is already registered',
   examples: {
     INVALID_BODY: {
-      summary: 'Body validation response',
+      summary: 'Credentials validation error',
       value: {
         statusCode: HttpStatus.BAD_REQUEST,
         message: DEFAULT_VALIDATION_EXCEPTION_MESSAGE,
@@ -65,7 +65,7 @@ export const loginBadRequestResponse: ApiResponseNoStatusOptions = {
 } as const;
 
 export const jwtTokenInvalidResponse: ApiResponseNoStatusOptions = {
-  description: 'Invalid token',
+  description: 'Invalid token provided to "Authorization" header',
   example: {
     statusCode: HttpStatus.UNAUTHORIZED,
     message: STATUS_CODES[HttpStatus.UNAUTHORIZED],
