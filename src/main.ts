@@ -10,6 +10,10 @@ import { DOCUMENT_CONFIG } from '@common/swagger/constants';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('query parser', 'extended');
+
   app.useGlobalFilters(new HttpExceptionsFilter());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.useGlobalPipes(

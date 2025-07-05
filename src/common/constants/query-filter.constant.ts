@@ -20,11 +20,6 @@ export enum FilterTypeEnum {
   ENUM = 'enum',
 }
 
-export const generateFilterParamRegex = (fields: string[]): RegExp =>
-  new RegExp(
-    `^filter\\[(${fields.join('|')})\\](?:\\[(${Object.values(FilterRuleEnum).join('|')})\\])?$`,
-  );
-
 export const ALLOWED_FILTER_RULES_MAP: Record<string, FilterRuleEnum[]> = {
   [FilterTypeEnum.STRING]: [
     FilterRuleEnum.EQUALS,
@@ -63,3 +58,5 @@ export const ALLOWED_FILTER_RULES_MAP: Record<string, FilterRuleEnum[]> = {
     FilterRuleEnum.NOT_IN,
   ],
 };
+
+export const QUERY_FILTER_DEFAULT_RULE = FilterRuleEnum.EQUALS;
