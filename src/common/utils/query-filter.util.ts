@@ -1,14 +1,20 @@
 import { ValidationError } from 'class-validator';
-import * as qs from 'qs';
 import { parseISO, isValid, isDate } from 'date-fns';
-import { isFinite, isBoolean, isString, isArray, toNumber } from 'lodash';
+import {
+  isFinite,
+  isBoolean,
+  isString,
+  isArray,
+  toNumber,
+  isObject,
+} from 'lodash';
 
 import {
   FILTER_ERRORS,
   ALLOWED_FILTER_RULES_MAP,
   FilterRuleEnum,
   FilterTypeEnum,
-  generateFilterParamRegex,
+  QUERY_FILTER_DEFAULT_RULE,
 } from '../constants';
 import {
   EnumFilterField,
@@ -23,35 +29,33 @@ const {
   INVALID_RULE_VALUE,
 } = FILTER_ERRORS;
 
-export const normalizeFilterParams = (
-  query: Record<string, any>,
-): Record<string, any> => {
-  const normalizedQuery: Record<string, any> = {};
-
-  for (const [key, value] of Object.entries(query)) {
-    const defaultRule = '[eq]';
-    const isFilterWithoutRule = key.match(/^filter\[(\w+)]$/);
-
-    const normalizedKey = isFilterWithoutRule ? key + defaultRule : key;
-    const normalizedValue = isArray(value) ? value.at(-1) : value;
-
-    normalizedQuery[normalizedKey] = normalizedValue;
-  }
-
-  return normalizedQuery;
-};
-
 export const pickFilterParams = (
   queryParams: Record<string, any>,
   fields: string[],
-): Record<string, any> => {
-  const filterParamRegex = generateFilterParamRegex(fields);
+): Record<string, { [key: string]: string }> => {
+  const filterParams: Record<string, { [key: string]: string }> = {};
 
-  const filterParams = Object.entries(queryParams).reduce(
-    (acc, [key, value]) =>
-      filterParamRegex.test(key) ? { ...acc, [key]: value } : acc,
-    {},
-  );
+  const getQueryParamValue = (value: string | Array<string>): string =>
+    isArray(value) ? (value.at(-1) as string) : value;
+
+  for (const [field, rulesOrValue] of Object.entries(queryParams)) {
+    if (!fields.includes(field)) continue;
+
+    const includeRules = isObject(rulesOrValue) && !isArray(rulesOrValue);
+    if (!includeRules) {
+      filterParams[field] = {
+        [QUERY_FILTER_DEFAULT_RULE]: getQueryParamValue(rulesOrValue),
+      };
+      continue;
+    }
+
+    const allowedRules = Object.values(FilterRuleEnum);
+    const normalizedRulesEntries = Object.entries(rulesOrValue)
+      .filter(([rule]) => allowedRules.includes(rule as FilterRuleEnum))
+      .map(([rule, value]) => [rule, getQueryParamValue(value as string)]);
+
+    filterParams[field] = Object.fromEntries(normalizedRulesEntries);
+  }
 
   return filterParams;
 };
@@ -91,7 +95,7 @@ const transformFilterValue = (
       if (isNullableRule) return transformToBoolean(value);
       if (isArrayLikeRule) return transformToArray<number>(value, toNumber);
 
-      return value;
+      return toNumber(value);
     },
     [FilterTypeEnum.BOOLEAN]: (value: string) => transformToBoolean(value),
     [FilterTypeEnum.DATE]: (value: string) =>
@@ -104,16 +108,13 @@ const transformFilterValue = (
 };
 
 export const parseFilterParams = (
-  queryParams: Record<string, any>,
+  queryParams: Record<string, { [key: string]: string }>,
   filterableFieldsMap: Record<string, QueryFilterFieldOptions>,
 ): QueryFilter[] => {
   const filters: QueryFilter[] = [];
 
-  const { filter = {} } = qs.parse(queryParams);
-  const filterMap = filter as Record<string, { [key: string]: string }>;
-
-  for (const [property] of Object.entries(filterMap)) {
-    const rules = filterMap[property];
+  for (const [property] of Object.entries(queryParams)) {
+    const rules = queryParams[property];
     const propertyType = filterableFieldsMap[property]?.type;
 
     for (const [rule, value] of Object.entries(rules)) {

@@ -1,12 +1,7 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 
-import {
-  normalizeFilterParams,
-  parseFilterParams,
-  pickFilterParams,
-  validateFilters,
-} from '../utils';
+import { parseFilterParams, pickFilterParams, validateFilters } from '../utils';
 import { QueryFilter, QueryFilterFieldOptions } from '../interfaces';
 import { FILTER_VALIDATION_EXCEPTION_MESSAGE } from '../constants';
 import { ValidationException } from '../exceptions';
@@ -17,12 +12,11 @@ export const FilteringQuery = createParamDecorator(
     ctx: ExecutionContext,
   ): QueryFilter[] => {
     const req: Request = ctx.switchToHttp().getRequest();
-    const rawFilterParams = pickFilterParams(
+    const filterParams = pickFilterParams(
       req.query,
       Object.keys(filterableFieldsMap),
     );
-    const normalizedParams = normalizeFilterParams(rawFilterParams);
-    const filters = parseFilterParams(normalizedParams, filterableFieldsMap);
+    const filters = parseFilterParams(filterParams, filterableFieldsMap);
 
     const errors = validateFilters(filters, filterableFieldsMap);
 
